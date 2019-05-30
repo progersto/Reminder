@@ -27,13 +27,13 @@ class NotificationListenerExampleService : NotificationListenerService() {
     }
 
     private object ApplicationPackageNames {
-        val WHATSAPP_PACK_NAME = "com.whatsapp"
-        val TELEGRAM_PACK_NAME = "org.telegram.messenger"
-        val TELEGRAM_X_PACK_NAME = "org.thunderdog.challegram"
-        val CALL_PACK_NAME = "com.android.incallui"
-        val CALL_8_PACK_NAME = "com.google.android.dialer"
+        const val WHATSAPP_PACK_NAME = "com.whatsapp"
+        const val TELEGRAM_PACK_NAME = "org.telegram.messenger"
+        const val TELEGRAM_X_PACK_NAME = "org.thunderdog.challegram"
+        const val CALL_PACK_NAME = "com.android.phone"
+//        const val CALL_PACK_NAME = "com.android.incallui"
+//        const val CALL_8_PACK_NAME = "com.google.android.dialer"
     }
-
 
     override fun onCreate() {
         super.onCreate()
@@ -45,7 +45,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
         val builder = Notification.Builder(applicationContext)
         builder.setContentTitle("Reminder ON")
-        builder.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.notif_icon_2))
+        builder.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.notif_icon_2_small_1))
         builder.setSmallIcon(R.drawable.notif_icon_2)
         builder.setWhen(System.currentTimeMillis())
         builder.setContentIntent(pendingIntent)
@@ -81,16 +81,14 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onBind(intent: Intent): IBinder? {
         Log.d("Package__", "onBind ")
-        val inten = Intent(PATH_SERVICE)
-        inten.putExtra("Binding_service", "onBind")
-        sendBroadcast(inten)//set icon app
+        DataController.getInstance().setValueInLifeDataS("onBind")
         return super.onBind(intent)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 0)
 
-        if (notificationCode != NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE) {
+        if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
             sendBroadcastInMain(notificationCode, true)
             if (!isCanselAlarm(this)) {//if alarm already started
                 Alarm.setAlarm(this)
@@ -100,28 +98,13 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 1)
-        if (notificationCode == NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE) {
-            val activeNotifications = this.activeNotifications
-            if (activeNotifications != null && activeNotifications.isNotEmpty()) {
-                for (i in activeNotifications.indices) {
-                    if (notificationCode == matchNotificationCode(activeNotifications[i], 1)) {
-                        sendBroadcastInMain(notificationCode, false)
-                        break
-                    }
-                }
-            }
-        } else {
+        if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
             Alarm.cancelAlarm(this)
-            sendBroadcastInMain(notificationCode, false)
+            sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
         }
     }
 
     private fun sendBroadcastInMain(notificationCode: Int, send: Boolean) {
-        val intent = Intent(PATH_SERVICE)
-        intent.putExtra("Notification Code", notificationCode)
-//        intent.putExtra("send", send)
-        sendBroadcast(intent)
-
         DataController.getInstance().setValueInLifeData(ValueliveData(send, notificationCode))
     }
 
@@ -134,13 +117,14 @@ class NotificationListenerExampleService : NotificationListenerService() {
         }
 
         return when (packageName) {
-            ApplicationPackageNames.WHATSAPP_PACK_NAME -> NotificationListenerExampleService.WHATSAPP_CODE
-            ApplicationPackageNames.TELEGRAM_PACK_NAME, ApplicationPackageNames.TELEGRAM_X_PACK_NAME -> NotificationListenerExampleService.TELEGRAM_CODE
-            ApplicationPackageNames.CALL_PACK_NAME, ApplicationPackageNames.CALL_8_PACK_NAME -> NotificationListenerExampleService.CALL_CODE
-            else -> NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE
+            ApplicationPackageNames.WHATSAPP_PACK_NAME -> WHATSAPP_CODE
+            ApplicationPackageNames.TELEGRAM_PACK_NAME,
+            ApplicationPackageNames.TELEGRAM_X_PACK_NAME -> TELEGRAM_CODE
+//            ApplicationPackageNames.CALL_8_PACK_NAME,
+            ApplicationPackageNames.CALL_PACK_NAME -> CALL_CODE
+            else -> OTHER_NOTIFICATIONS_CODE
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
@@ -165,9 +149,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onUnbind(intent: Intent): Boolean {
         Log.d("Package__", "onUnbind")
-        val inten = Intent(PATH_SERVICE)
-        inten.putExtra("Binding_service", "onUnbind")
-        sendBroadcast(inten)//set icon app
+        DataController.getInstance().setValueInLifeDataS("onUnbind")
         return super.onUnbind(intent)
     }
 

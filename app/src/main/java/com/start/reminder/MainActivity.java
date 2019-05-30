@@ -3,12 +3,9 @@ package com.start.reminder;
 import android.app.AlertDialog;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +18,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.start.model.User;
 import com.start.utils.PreferUtilKt;
 
@@ -29,21 +25,18 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners";
     private static final String ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
-
     private ImageView interceptedNotificationImageView;
-    private ImageChangeBroadcastReceiver imageChangeBroadcastReceiver;
     private AlertDialog enableNotificationListenerAlertDialog;
     private Button permissoinBtn, repeatBtn;
     private TextView time;
     private SeekBar seekBar;
     private LiveData<ValueliveData> liveData;
-
+    private LiveData<String> liveDataS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         interceptedNotificationImageView = findViewById(R.id.intercepted_notification_logo);
         permissoinBtn = findViewById(R.id.permissoinBtn);
@@ -116,21 +109,23 @@ public class MainActivity extends AppCompatActivity {
             permissoinBtn.setText("есть разрешения");
         }
 
-        imageChangeBroadcastReceiver = new ImageChangeBroadcastReceiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(NotificationListenerExampleService.PATH_SERVICE);
-        registerReceiver(imageChangeBroadcastReceiver, intentFilter);
-
         liveData = DataController.Companion.getInstance().getLifeData();
         liveData.observe(this, new Observer<ValueliveData>() {
             @Override
             public void onChanged(ValueliveData value) {
                 Log.d("Package__", "liveData Observe");
-                setTextBtn(value.getAction());
+                setTextBtn(value.getAction());//stop notification text
                 changeInterceptedNotificationImage(value.getNotificationCode());
-                DataController.Companion.getInstance().getLiveDataS().postValue("mmmmm");
             }
         });
+        liveDataS = DataController.Companion.getInstance().getLifeDataS();
+        liveDataS.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+               setTextPermission(s);
+            }
+        });
+
         DataController.Companion.getInstance().getLiveDataUser().observe(this, new Observer<User>() {
             @Override
             public void onChanged(@Nullable User user) {
@@ -138,12 +133,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }//onCreate
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(imageChangeBroadcastReceiver);
-    }
 
     private void changeInterceptedNotificationImage(int notificationCode) {
         switch (notificationCode) {
@@ -157,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 interceptedNotificationImageView.setImageResource(R.drawable.call);
                 break;
             case NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE:
-                interceptedNotificationImageView.setImageResource(R.drawable.other_notification_logo);
+                interceptedNotificationImageView.setImageResource(R.drawable.notif_icon_2_no);
                 break;
         }
     }
@@ -167,6 +156,17 @@ public class MainActivity extends AppCompatActivity {
             repeatBtn.setText("Остановить уведомления");
         } else {
             repeatBtn.setText("Нет уведомлений");
+        }
+    }
+
+    private void setTextPermission(String s) {
+        switch (s) {
+            case "onBind":
+                permissoinBtn.setText("есть разрешения");
+                break;
+            case "onUnbind":
+                permissoinBtn.setText("нет разрешений");
+                break;
         }
     }
 
@@ -186,26 +186,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return false;
-    }
-
-    public class ImageChangeBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int receivedNotificationCode = intent.getIntExtra("Notification Code", -1);
-            String start = intent.getStringExtra("Binding_service");
-            if (start != null) {
-                switch (start) {
-                    case "onBind":
-                        permissoinBtn.setText("есть разрешения");
-                        break;
-                    case "onUnbind":
-                        permissoinBtn.setText("нет разрешений");
-                        break;
-                }
-            }
-            Log.d("Package__", "Image changed");
-        }
     }
 
     private AlertDialog buildNotificationServiceAlertDialog() {
