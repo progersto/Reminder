@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Alarm.Companion.cancelAlarm(v.getContext());
                     repeatBtn.setText("Нет уведомлений");
+                    changeInterceptedNotificationImage(NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE);
                 }
             }
         });

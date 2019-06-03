@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:allowBackup="true"
@@ -15,7 +16,7 @@
         <activity android:name="com.start.reminder.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -28,7 +29,7 @@
             </intent-filter>
         </service>
 
-        <receiver android:process=":remote" android:name="com.start.reminder.Alarm"></receiver>
+        <receiver android:process=":remote" android:name="com.start.reminder.Alarm"/>
     </application>
 
 </manifest>

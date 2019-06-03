@@ -8,18 +8,24 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.start.utils.isCanselAlarm
+import android.os.HandlerThread
+import com.start.reminder.NotificationListenerExampleService.Companion.CALL_CODE
+import com.start.reminder.NotificationListenerExampleService.Companion.OTHER_NOTIFICATIONS_CODE
+import com.start.reminder.NotificationListenerExampleService.Companion.TELEGRAM_CODE
+import com.start.reminder.NotificationListenerExampleService.Companion.WHATSAPP_CODE
+
 
 class NotificationListenerExampleService : NotificationListenerService() {
     private val notifId = 4
+    private var handler: Handler? = null
 
     companion object {
-        const val PATH_SERVICE = "com.start.reminder.NotificationListenerExampleService"
-
         const val CALL_CODE = 1
         const val WHATSAPP_CODE = 2
         const val TELEGRAM_CODE = 4
@@ -31,8 +37,6 @@ class NotificationListenerExampleService : NotificationListenerService() {
         const val TELEGRAM_PACK_NAME = "org.telegram.messenger"
         const val TELEGRAM_X_PACK_NAME = "org.thunderdog.challegram"
         const val CALL_PACK_NAME = "com.android.phone"
-//        const val CALL_PACK_NAME = "com.android.incallui"
-//        const val CALL_8_PACK_NAME = "com.google.android.dialer"
     }
 
     override fun onCreate() {
@@ -53,6 +57,9 @@ class NotificationListenerExampleService : NotificationListenerService() {
             builder.setChannelId("id")
         }
         startForeground(notifId, builder.build())
+
+        handler = Handler()
+
         Log.d("Package__", "OnCreate")
     }
 
@@ -87,11 +94,16 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 0)
+        if (notificationCode != OTHER_NOTIFICATIONS_CODE && !isCanselAlarm(this)) {
 
-        if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
-            sendBroadcastInMain(notificationCode, true)
-            if (!isCanselAlarm(this)) {//if alarm already started
-                Alarm.setAlarm(this)
+            handler?.also {
+                if (!it.hasMessages(0)) {
+                    it.postDelayed({
+                        sendBroadcastInMain(notificationCode, true)
+                        Alarm.setAlarm(this)
+                    }, 1000 * 60)
+
+                }
             }
         }
     }
@@ -120,7 +132,6 @@ class NotificationListenerExampleService : NotificationListenerService() {
             ApplicationPackageNames.WHATSAPP_PACK_NAME -> WHATSAPP_CODE
             ApplicationPackageNames.TELEGRAM_PACK_NAME,
             ApplicationPackageNames.TELEGRAM_X_PACK_NAME -> TELEGRAM_CODE
-//            ApplicationPackageNames.CALL_8_PACK_NAME,
             ApplicationPackageNames.CALL_PACK_NAME -> CALL_CODE
             else -> OTHER_NOTIFICATIONS_CODE
         }
