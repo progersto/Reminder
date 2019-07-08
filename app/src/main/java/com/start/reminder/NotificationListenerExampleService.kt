@@ -13,9 +13,8 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.start.utils.canceledAlarm
-import com.start.utils.isCancelAlarm
-import com.start.utils.restoreTime
+import com.start.utils.*
+import java.util.*
 
 class NotificationListenerExampleService : NotificationListenerService() {
     private val notifId = 4
@@ -93,24 +92,50 @@ class NotificationListenerExampleService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 0)
 
-        if (DataController.getInstance().getLifeData().value == null){
+        if (DataController.getInstance().getLifeData().value == null) {
             Alarm.cancelAlarm(this)
             sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
         }
 
         if (notificationCode != OTHER_NOTIFICATIONS_CODE && !isCancelAlarm(this)) {
-            handler?.also {
-                if (!it.hasMessages(0)) {
-                    Log.d("Package__", "handler init ")
-                    canceledAlarm(this, true)
-                    it.postDelayed({
-                        Log.d("Package__", "set in handler ")
-                        sendBroadcastInMain(notificationCode, true)
-                        Alarm.setAlarm(this)
-                    }, (1000 * 20 * restoreTime(baseContext)).toLong())
+            val timeF = restoreTimeFrom(this)
+            val timeFrom = compareDate(timeF)
+            val timeT = restoreTimeTo(this)
+            val timeTo = compareDate(timeT)
+
+            if (!timeFrom && timeTo) {
+                handler?.also {
+                    if (!it.hasMessages(0)) {
+                        Log.d("Package__", "handler init ")
+                        canceledAlarm(this, true)
+                        it.postDelayed({
+                            Log.d("Package__", "set in handler ")
+                            sendBroadcastInMain(notificationCode, true)
+                            Alarm.setAlarm(this)
+                        }, (1000 * 20 * restoreTime(baseContext)).toLong())
+                    }
                 }
             }
         }
+    }
+
+    private fun compareDate(reference: String): Boolean {
+        val now = Calendar.getInstance()
+        val hourNow = now.get(Calendar.HOUR_OF_DAY)
+        val minuteNow = now.get(Calendar.MINUTE)
+
+        val dateNow = Calendar.getInstance()
+        dateNow.set(Calendar.HOUR_OF_DAY, hourNow)
+        dateNow.set(Calendar.MINUTE, minuteNow)
+        dateNow.set(Calendar.SECOND, 0)
+
+        val parts = reference.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val date2 = Calendar.getInstance()
+        date2.set(Calendar.HOUR_OF_DAY, Integer.parseInt(parts[0]))
+        date2.set(Calendar.MINUTE, Integer.parseInt(parts[1]))
+        date2.set(Calendar.SECOND, 0)
+
+        return dateNow.before(date2) //текущей дата находится до сравниваемая даты
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
