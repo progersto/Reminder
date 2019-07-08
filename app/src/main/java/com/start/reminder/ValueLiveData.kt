@@ -1,6 +1,6 @@
 package com.start.reminder
 
-class ValueliveData(private var action: Boolean, private var notificationCode: Int) {
+class ValueLiveData(private var action: Boolean, private var notificationCode: Int) {
 
     fun getAction(): Boolean {
         return action

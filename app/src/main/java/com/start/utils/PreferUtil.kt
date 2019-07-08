@@ -6,7 +6,8 @@ import android.util.Log
 
 var TIME_KEY = "time"
 var ALARM_CANCEL_KEY = "cancelAlarm"
-
+var TIME_FROM_KEY = "time_from"
+var TIME_TO_KEY = "time_to"
 
 fun saveTime(context: Context, value: Int) {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -20,6 +21,30 @@ fun restoreTime(context: Context): Int {
     return prefs.getInt(TIME_KEY, 0)
 }
 
+fun saveTimeFrom(context: Context, value: String) {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    val editor = prefs.edit()
+    editor.putString(TIME_FROM_KEY, value)
+    editor.apply()
+}
+
+fun restoreTimeFrom(context: Context): String {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefs.getString(TIME_FROM_KEY, "09:00")!!
+}
+
+fun saveTimeTo(context: Context, value: String) {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    val editor = prefs.edit()
+    editor.putString(TIME_TO_KEY, value)
+    editor.apply()
+}
+
+fun restoreTimeTo(context: Context): String {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefs.getString(TIME_TO_KEY, "21:00")!!
+}
+
 fun canceledAlarm(context: Context, value: Boolean) {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     val editor = prefs.edit()
@@ -27,7 +52,7 @@ fun canceledAlarm(context: Context, value: Boolean) {
     editor.apply()
 }
 
-fun isCanselAlarm(context: Context): Boolean {
+fun isCancelAlarm(context: Context): Boolean {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     val alarmUp = prefs.getBoolean(ALARM_CANCEL_KEY, false)
     if (alarmUp) {

@@ -13,13 +13,8 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.start.utils.isCanselAlarm
-import android.os.HandlerThread
-import com.start.reminder.NotificationListenerExampleService.Companion.CALL_CODE
-import com.start.reminder.NotificationListenerExampleService.Companion.OTHER_NOTIFICATIONS_CODE
-import com.start.reminder.NotificationListenerExampleService.Companion.TELEGRAM_CODE
-import com.start.reminder.NotificationListenerExampleService.Companion.WHATSAPP_CODE
-
+import com.start.utils.isCancelAlarm
+import com.start.utils.restoreTime
 
 class NotificationListenerExampleService : NotificationListenerService() {
     private val notifId = 4
@@ -28,11 +23,13 @@ class NotificationListenerExampleService : NotificationListenerService() {
     companion object {
         const val CALL_CODE = 1
         const val WHATSAPP_CODE = 2
+        const val VIBER_CODE = 3
         const val TELEGRAM_CODE = 4
         const val OTHER_NOTIFICATIONS_CODE = 6 // We ignore all notification with code == 4
     }
 
     private object ApplicationPackageNames {
+        const val VIBER_PACK_NAME = "com.viber.voip"
         const val WHATSAPP_PACK_NAME = "com.whatsapp"
         const val TELEGRAM_PACK_NAME = "org.telegram.messenger"
         const val TELEGRAM_X_PACK_NAME = "org.thunderdog.challegram"
@@ -70,7 +67,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel("id", name, importance)
             channel.description = description
-            val notificationManager = getSystemService<NotificationManager>(NotificationManager::class.java)
+            val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager!!.createNotificationChannel(channel)
         }
     }
@@ -94,14 +91,15 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 0)
-        if (notificationCode != OTHER_NOTIFICATIONS_CODE && !isCanselAlarm(this)) {
-
+        if (notificationCode != OTHER_NOTIFICATIONS_CODE && !isCancelAlarm(this)) {
             handler?.also {
                 if (!it.hasMessages(0)) {
+                    Log.d("Package__", "handler init ")
                     it.postDelayed({
+                        Log.d("Package__", "set in handler ")
                         sendBroadcastInMain(notificationCode, true)
                         Alarm.setAlarm(this)
-                    }, 1000 * 60)
+                    }, (1000 * 20 * restoreTime(baseContext)).toLong())
 
                 }
             }
@@ -117,7 +115,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
     }
 
     private fun sendBroadcastInMain(notificationCode: Int, send: Boolean) {
-        DataController.getInstance().setValueInLifeData(ValueliveData(send, notificationCode))
+        DataController.getInstance().setValueInLifeData(ValueLiveData(send, notificationCode))
     }
 
     private fun matchNotificationCode(sbn: StatusBarNotification, action: Int): Int {
@@ -129,6 +127,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
         }
 
         return when (packageName) {
+            ApplicationPackageNames.VIBER_PACK_NAME -> VIBER_CODE
             ApplicationPackageNames.WHATSAPP_PACK_NAME -> WHATSAPP_CODE
             ApplicationPackageNames.TELEGRAM_PACK_NAME,
             ApplicationPackageNames.TELEGRAM_X_PACK_NAME -> TELEGRAM_CODE
@@ -160,6 +159,10 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onUnbind(intent: Intent): Boolean {
         Log.d("Package__", "onUnbind")
+
+        Alarm.cancelAlarm(this)
+        sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
+
         DataController.getInstance().setValueInLifeDataS("onUnbind")
         return super.onUnbind(intent)
     }

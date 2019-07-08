@@ -11,10 +11,9 @@ import android.media.MediaPlayer
 import android.os.*
 import android.util.Log
 import android.widget.Toast
-import com.start.utils.canceledAlarm
-import com.start.utils.isCanselAlarm
-import com.start.utils.restoreTime
+import com.start.utils.*
 import java.io.IOException
+import java.util.*
 
 class Alarm : BroadcastReceiver() {
 
@@ -23,7 +22,6 @@ class Alarm : BroadcastReceiver() {
         val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, javaClass.name)
         wakeLock.acquire()
 
-        Log.d("Package__", "onReceive alarm")
         Toast.makeText(context, "Alarm !!!!!!!!!!", Toast.LENGTH_LONG).show()
         val mediaPlayer = MediaPlayer()
         try {
@@ -35,7 +33,6 @@ class Alarm : BroadcastReceiver() {
             mediaPlayer.prepare()
             mediaPlayer.start()
 
-            Log.d("Package__", "onReceive play")
         } catch (e: IOException) {
             Log.e("Package__", "error ${e.message}")
             e.printStackTrace()
@@ -46,16 +43,23 @@ class Alarm : BroadcastReceiver() {
     companion object {
 
         fun setAlarm(context: Context) {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val intent = Intent(context, Alarm::class.java)
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
-            alarmManager.setRepeating(
-                    AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-                    (1000 * 60 * restoreTime(context)).toLong(),
-                    pendingIntent
-            )
-            canceledAlarm(context, true)
-            Log.d("Package__", "setAlarm " + restoreTime(context))
+            val timeF = restoreTimeFrom(context)
+            val timeFrom = compareDate(timeF)
+            val timeT = restoreTimeTo(context)
+            val timeTo = compareDate(timeT)
+
+            if (!timeFrom && timeTo){
+                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val intent = Intent(context, Alarm::class.java)
+                val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
+                alarmManager.setRepeating(
+                        AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
+                        (1000 * 60 * restoreTime(context)).toLong(),
+                        pendingIntent
+                )
+                canceledAlarm(context, true)
+                Log.d("Package__", "setAlarm " + restoreTime(context))
+            }
         }
 
         fun cancelAlarm(context: Context) {
@@ -65,6 +69,25 @@ class Alarm : BroadcastReceiver() {
             alarmManager.cancel(sender)
             canceledAlarm(context, false)
             Log.d("Package__", "cancelAlarm")
+        }
+
+        private fun compareDate(reference: String): Boolean {
+            val now = Calendar.getInstance()
+            val hourNow = now.get(Calendar.HOUR_OF_DAY)
+            val minuteNow = now.get(Calendar.MINUTE)
+
+            val dateNow = Calendar.getInstance()
+            dateNow.set(Calendar.HOUR_OF_DAY, hourNow)
+            dateNow.set(Calendar.MINUTE, minuteNow)
+            dateNow.set(Calendar.SECOND, 0)
+
+            val parts = reference.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val date2 = Calendar.getInstance()
+            date2.set(Calendar.HOUR_OF_DAY, Integer.parseInt(parts[0]))
+            date2.set(Calendar.MINUTE, Integer.parseInt(parts[1]))
+            date2.set(Calendar.SECOND, 0)
+
+            return dateNow.before(date2) //текущей дата находится до сравниваемая даты
         }
     }
 

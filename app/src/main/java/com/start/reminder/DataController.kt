@@ -1,16 +1,12 @@
 package com.start.reminder
 
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
 import android.arch.lifecycle.ViewModel
-import com.start.model.User
-
 
 class DataController: ViewModel() {
 
-    private val liveData = MutableLiveData<ValueliveData>()
+    private val liveData = MutableLiveData<ValueLiveData>()
     private val liveDataS = MutableLiveData<String>()
-    val liveDataUser = Transformations.switchMap(liveDataS) { action -> getUser(action) }
 
     companion object {
 
@@ -29,7 +25,7 @@ class DataController: ViewModel() {
         }
     }
 
-    fun getLifeData(): MutableLiveData<ValueliveData> {
+    fun getLifeData(): MutableLiveData<ValueLiveData> {
         return liveData
     }
 
@@ -37,18 +33,12 @@ class DataController: ViewModel() {
         return liveDataS
     }
 
-    fun setValueInLifeData(newValue: ValueliveData) {
+    fun setValueInLifeData(newValue: ValueLiveData) {
         liveData.postValue(newValue)
     }
 
     fun setValueInLifeDataS(newValue: String) {
         liveDataS.postValue(newValue)
-    }
-
-    private fun getUser(action: String): MutableLiveData<User> {
-        val mutableLiveData = MutableLiveData<User>()
-        mutableLiveData.value = User(action, action)
-        return mutableLiveData
     }
 }
 
