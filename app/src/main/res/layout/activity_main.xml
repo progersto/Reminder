@@ -67,11 +67,11 @@
         app:layout_constraintTop_toBottomOf="@+id/time" />
 
     <CheckBox
-        android:id="@+id/Btn"
+        android:id="@+id/checkbox_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="уведомлять только в это время:"
+        android:text="скрыть иконку вверху"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/repeatBtn" />
@@ -89,13 +89,15 @@
 
     <Button
         android:id="@+id/fromTime"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+
         android:layout_marginTop="8dp"
-        android:text="установите время"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Btn" />
+
+        android:text="установите время старта"
+        app:layout_constraintEnd_toEndOf="@+id/toTime"
+        app:layout_constraintStart_toStartOf="@+id/toTime"
+        app:layout_constraintTop_toBottomOf="@+id/checkbox_icon" />
 
     <TextView
         android:id="@+id/toTV"
@@ -104,6 +106,7 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="@+id/toTime"
         app:layout_constraintEnd_toStartOf="@+id/toTime"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/toTime"
         tools:text="11:22" />
@@ -112,11 +115,12 @@
         android:id="@+id/toTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="установите время"
+        android:layout_marginEnd="20dp"
+        android:text="установите время остановки"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fromTime"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="343dp" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/toTV"
+        app:layout_constraintTop_toBottomOf="@+id/fromTime" />
 
 
     <ImageView

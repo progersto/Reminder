@@ -45,11 +45,15 @@ class NotificationListenerExampleService : NotificationListenerService() {
                 notificationIntent, 0)
 
         val builder = Notification.Builder(applicationContext)
-        builder.setContentTitle("Reminder ON")
+        builder.setContentTitle("Reminder")
+        builder.setContentText("Включен")
         builder.setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.notif_icon_2_small_1))
         builder.setSmallIcon(R.drawable.notif_icon_2)
         builder.setWhen(System.currentTimeMillis())
         builder.setContentIntent(pendingIntent)
+        if (isSetIcon(this)){
+            builder.setPriority(Notification.PRIORITY_MIN)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId("id")
         }
@@ -112,7 +116,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
                             Log.d("Package__", "set in handler ")
                             sendBroadcastInMain(notificationCode, true)
                             Alarm.setAlarm(this)
-                        }, (1000 * 20 * restoreTime(baseContext)).toLong())
+                        }, (1000 * 60 * restoreTime(baseContext)).toLong())
                     }
                 }
             }

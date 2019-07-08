@@ -8,6 +8,7 @@ var TIME_KEY = "time"
 var ALARM_CANCEL_KEY = "cancelAlarm"
 var TIME_FROM_KEY = "time_from"
 var TIME_TO_KEY = "time_to"
+var SET_ICON_KEY = "set_icon"
 
 fun saveTime(context: Context, value: Int) {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -61,4 +62,16 @@ fun isCancelAlarm(context: Context): Boolean {
         Log.d("Package__", "Alarm is not active")
     }
     return alarmUp
+}
+
+fun setIcon(context: Context, value: Boolean) {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    val editor = prefs.edit()
+    editor.putBoolean(SET_ICON_KEY, value)
+    editor.apply()
+}
+
+fun isSetIcon(context: Context): Boolean {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefs.getBoolean(SET_ICON_KEY, false)
 }

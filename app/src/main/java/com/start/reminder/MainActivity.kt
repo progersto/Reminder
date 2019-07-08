@@ -43,6 +43,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        checkbox_icon.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                setIcon(this, true)
+            }else{
+                setIcon(this, false)
+            }
+        }
+
         if (restoreTime(this) == 0) {
             saveTime(this, Integer.parseInt(time!!.text.toString()))
         } else {
@@ -50,7 +58,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (isCancelAlarm(this)) {
-            repeatBtn!!.isActivated = true
             repeatBtn!!.text = "Остановить уведомления"
         } else {
             repeatBtn!!.text = "Нет уведомлений"
@@ -108,14 +115,20 @@ class MainActivity : AppCompatActivity() {
         val liveDataS = DataController.getInstance().getLifeDataS()
         liveDataS.observe(this, Observer { s -> setTextPermission(s!!) })
 
+        if (DataController.getInstance().getLifeData().value == null) {
+            DataController.getInstance().setValueInLifeData(ValueliveData(
+                    false, NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE)
+            )
+            Alarm.cancelAlarm(this)
+        }
+
         fromTime!!.setOnClickListener { configureTimePicker(fromTV, true) }
         toTime!!.setOnClickListener { configureTimePicker(toTV, false) }
-
 
         fromTV.text = restoreTimeFrom(this)
         toTV.text = restoreTimeTo(this)
 
-        Btn.setOnClickListener {
+        checkbox_icon.setOnClickListener {
             restoreTimeFrom(this)
             restoreTimeTo(this)
         }

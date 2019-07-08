@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Context.VIBRATOR_SERVICE
 import android.content.Intent
+import android.media.AudioManager
 
 import android.media.MediaPlayer
 import android.os.*
@@ -23,22 +24,24 @@ class Alarm : BroadcastReceiver() {
         wakeLock.acquire()
 
         Toast.makeText(context, "Alarm !!!!!!!!!!", Toast.LENGTH_LONG).show()
-        val mediaPlayer = MediaPlayer()
+
         try {
-            context.vibrate(longArrayOf(100, 200))
-
-            val descriptor = context.assets.openFd("win" + ".mp3")
-            mediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
-            descriptor.close()
-            mediaPlayer.prepare()
-            mediaPlayer.start()
-
-        } catch (e: IOException) {
-            Log.e("Package__", "error ${e.message}")
-            e.printStackTrace()
-        }
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            when (audioManager.ringerMode) {
+                AudioManager.RINGER_MODE_NORMAL -> {
+                    context.melody()
+                    context.vibrate(longArrayOf(0, 400, 200, 500))
+                }
+                AudioManager.RINGER_MODE_SILENT -> {
+                }
+                AudioManager.RINGER_MODE_VIBRATE -> {
+                    context.vibrate(longArrayOf(0, 400, 200, 500))
+                }
+            }
+        } catch (e: IOException) { e.printStackTrace() }
         wakeLock.release()
     }
+
 
     companion object {
 
@@ -73,5 +76,14 @@ class Alarm : BroadcastReceiver() {
             @Suppress("DEPRECATION")
             vibrator.vibrate(pattern, -1)
         }
+    }
+
+    private fun Context.melody() {
+        val mediaPlayer = MediaPlayer()
+        val descriptor = applicationContext.assets.openFd("win" + ".mp3")
+        mediaPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+        descriptor.close()
+        mediaPlayer.prepare()
+        mediaPlayer.start()
     }
 }
