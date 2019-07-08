@@ -108,8 +108,6 @@ class MainActivity : AppCompatActivity() {
         val liveDataS = DataController.getInstance().getLifeDataS()
         liveDataS.observe(this, Observer { s -> setTextPermission(s!!) })
 
-//        DataController.getInstance().liveDataUser.observe(this, Observer { user -> Log.d("Package__", user!!.toString()) })
-
         fromTime!!.setOnClickListener { configureTimePicker(fromTV, true) }
         toTime!!.setOnClickListener { configureTimePicker(toTV, false) }
 

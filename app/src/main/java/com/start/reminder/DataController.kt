@@ -5,7 +5,7 @@ import android.arch.lifecycle.ViewModel
 
 class DataController: ViewModel() {
 
-    private val liveData = MutableLiveData<ValueLiveData>()
+    private val liveData = MutableLiveData<ValueliveData>()
     private val liveDataS = MutableLiveData<String>()
 
     companion object {
@@ -25,7 +25,7 @@ class DataController: ViewModel() {
         }
     }
 
-    fun getLifeData(): MutableLiveData<ValueLiveData> {
+    fun getLifeData(): MutableLiveData<ValueliveData> {
         return liveData
     }
 
@@ -33,7 +33,7 @@ class DataController: ViewModel() {
         return liveDataS
     }
 
-    fun setValueInLifeData(newValue: ValueLiveData) {
+    fun setValueInLifeData(newValue: ValueliveData) {
         liveData.postValue(newValue)
     }
 

@@ -57,7 +57,6 @@ class Alarm : BroadcastReceiver() {
                         (1000 * 60 * restoreTime(context)).toLong(),
                         pendingIntent
                 )
-                canceledAlarm(context, true)
                 Log.d("Package__", "setAlarm " + restoreTime(context))
             }
         }

@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.start.utils.canceledAlarm
 import com.start.utils.isCancelAlarm
 import com.start.utils.restoreTime
 
@@ -91,16 +92,22 @@ class NotificationListenerExampleService : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 0)
+
+        if (DataController.getInstance().getLifeData().value == null){
+            Alarm.cancelAlarm(this)
+            sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
+        }
+
         if (notificationCode != OTHER_NOTIFICATIONS_CODE && !isCancelAlarm(this)) {
             handler?.also {
                 if (!it.hasMessages(0)) {
                     Log.d("Package__", "handler init ")
+                    canceledAlarm(this, true)
                     it.postDelayed({
                         Log.d("Package__", "set in handler ")
                         sendBroadcastInMain(notificationCode, true)
                         Alarm.setAlarm(this)
                     }, (1000 * 20 * restoreTime(baseContext)).toLong())
-
                 }
             }
         }
@@ -115,7 +122,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
     }
 
     private fun sendBroadcastInMain(notificationCode: Int, send: Boolean) {
-        DataController.getInstance().setValueInLifeData(ValueLiveData(send, notificationCode))
+        DataController.getInstance().setValueInLifeData(ValueliveData(send, notificationCode))
     }
 
     private fun matchNotificationCode(sbn: StatusBarNotification, action: Int): Int {
