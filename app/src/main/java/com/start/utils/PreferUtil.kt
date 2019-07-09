@@ -9,6 +9,8 @@ var ALARM_CANCEL_KEY = "cancelAlarm"
 var TIME_FROM_KEY = "time_from"
 var TIME_TO_KEY = "time_to"
 var SET_ICON_KEY = "set_icon"
+var SET_VIBRO_KEY = "set_vibro"
+var SET_TIME_VIBRO_KEY = "set_time_vibro"
 
 fun saveTime(context: Context, value: Int) {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -57,9 +59,9 @@ fun isCancelAlarm(context: Context): Boolean {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     val alarmUp = prefs.getBoolean(ALARM_CANCEL_KEY, false)
     if (alarmUp) {
-        Log.d("Package__", "Alarm is already active")
+        Log.d("Package__", "AlarmReceiver is already active")
     } else {
-        Log.d("Package__", "Alarm is not active")
+        Log.d("Package__", "AlarmReceiver is not active")
     }
     return alarmUp
 }
@@ -74,4 +76,28 @@ fun setIcon(context: Context, value: Boolean) {
 fun isSetIcon(context: Context): Boolean {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     return prefs.getBoolean(SET_ICON_KEY, false)
+}
+
+fun setVibro(context: Context, value: Boolean) {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    val editor = prefs.edit()
+    editor.putBoolean(SET_VIBRO_KEY, value)
+    editor.apply()
+}
+
+fun isVibro(context: Context): Boolean {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefs.getBoolean(SET_VIBRO_KEY, false)
+}
+
+fun saveTimeVibro(context: Context, value: String) {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    val editor = prefs.edit()
+    editor.putString(SET_TIME_VIBRO_KEY, value)
+    editor.apply()
+}
+
+fun restoreTimeVibro(context: Context): String {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    return prefs.getString(SET_TIME_VIBRO_KEY, "18:00")!!
 }

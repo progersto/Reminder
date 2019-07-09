@@ -1,9 +1,12 @@
 package com.start.reminder
 
+import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.arch.lifecycle.Observer
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.support.v7.app.AppCompatActivity
@@ -14,6 +17,8 @@ import android.util.Log
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import com.start.receivers.AlarmReceiver
+import com.start.receivers.MyRees
 import com.start.utils.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
@@ -43,12 +48,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        checkbox_icon.setOnCheckedChangeListener { _, isChecked ->
+        disable_vibro_checkbox_icon.isChecked = isVibro(this)
+        disable_vibro_checkbox_icon.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                setIcon(this, true)
-            }else{
-                setIcon(this, false)
+                setVibro(this, true)
+                initDisableVibro(disable_vibroTV.text.toString())
+            } else {
+                setVibro(this, false)
             }
+        }
+
+        checkbox_icon.isChecked = isSetIcon(this)
+        checkbox_icon.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) setIcon(this, true) else setIcon(this, false)
         }
 
         if (restoreTime(this) == 0) {
@@ -72,9 +84,9 @@ class MainActivity : AppCompatActivity() {
                 time!!.text = progr.toString()
                 saveTime(seekBar.context, progr)
                 if (isCancelAlarm(seekBar.context)) {
-                    Alarm.cancelAlarm(this@MainActivity)
-                    Alarm.setAlarm(this@MainActivity)
-                    Log.d("Package__", "Alarm is reinstalled")
+                    AlarmReceiver.cancelAlarm(this@MainActivity)
+                    AlarmReceiver.setAlarm(this@MainActivity)
+                    Log.d("Package__", "AlarmReceiver is reinstalled")
                 } else
                     Log.d("Package__", "set time")
             }
@@ -92,9 +104,9 @@ class MainActivity : AppCompatActivity() {
             if (repeatBtn!!.text.toString() == "Нет уведомлений") {
                 Toast.makeText(v.context, "Нет уведомлений", Toast.LENGTH_SHORT).show()
             } else {
-                Alarm.cancelAlarm(v.context)
+                AlarmReceiver.cancelAlarm(v.context)
                 repeatBtn!!.text = "Нет уведомлений"
-                changeInterceptedNotificationImage(NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE)
+                changeInterceptedNotificationImage(NotificationService.OTHER_NOTIFICATIONS_CODE)
             }
         }
         permissoinBtn!!.setOnClickListener { startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
@@ -117,16 +129,18 @@ class MainActivity : AppCompatActivity() {
 
         if (DataController.getInstance().getLifeData().value == null) {
             DataController.getInstance().setValueInLifeData(ValueliveData(
-                    false, NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE)
+                    false, NotificationService.OTHER_NOTIFICATIONS_CODE)
             )
-            Alarm.cancelAlarm(this)
+            AlarmReceiver.cancelAlarm(this)
         }
 
-        fromTime!!.setOnClickListener { configureTimePicker(fromTV, true) }
-        toTime!!.setOnClickListener { configureTimePicker(toTV, false) }
+        fromTime.setOnClickListener { configureTimePicker(fromTV, "from") }
+        toTime.setOnClickListener { configureTimePicker(toTV, "to") }
+        disable_vibro_time_btn.setOnClickListener { configureTimePicker(disable_vibroTV, "vibro") }
 
         fromTV.text = restoreTimeFrom(this)
         toTV.text = restoreTimeTo(this)
+        disable_vibroTV.text = restoreTimeVibro(this)
 
         checkbox_icon.setOnClickListener {
             restoreTimeFrom(this)
@@ -134,7 +148,7 @@ class MainActivity : AppCompatActivity() {
         }
     }//onCreate
 
-    private fun configureTimePicker(text: TextView, fromOrTo: Boolean) {
+    private fun configureTimePicker(text: TextView, savedTime: String) {
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
@@ -149,10 +163,10 @@ class MainActivity : AppCompatActivity() {
             val hr = if (hourOfDay < 10) "0$hourOfDay" else hourOfDay.toString()
             val hourString = "$hr:$mn"
 
-            if (fromOrTo) {
-                saveTimeFrom(this, hourString)
-            } else {
-                saveTimeTo(this, hourString)
+            when (savedTime) {
+                "from" -> saveTimeFrom(this, hourString)
+                "to" -> saveTimeTo(this, hourString)
+                "vibro" -> saveTimeVibro(this, hourString)
             }
 
             text.text = hourString
@@ -162,11 +176,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun changeInterceptedNotificationImage(notificationCode: Int) {
         when (notificationCode) {
-            NotificationListenerExampleService.VIBER_CODE -> intercepted_notification_logo.setImageResource(R.drawable.viber)
-            NotificationListenerExampleService.WHATSAPP_CODE -> intercepted_notification_logo.setImageResource(R.drawable.whatsapp_logo)
-            NotificationListenerExampleService.TELEGRAM_CODE -> intercepted_notification_logo.setImageResource(R.drawable.telegram)
-            NotificationListenerExampleService.CALL_CODE -> intercepted_notification_logo.setImageResource(R.drawable.call)
-            NotificationListenerExampleService.OTHER_NOTIFICATIONS_CODE -> intercepted_notification_logo.setImageResource(R.drawable.notif_icon_2_no)
+            NotificationService.VIBER_CODE -> intercepted_notification_logo.setImageResource(R.drawable.viber)
+            NotificationService.WHATSAPP_CODE -> intercepted_notification_logo.setImageResource(R.drawable.whatsapp_logo)
+            NotificationService.TELEGRAM_CODE -> intercepted_notification_logo.setImageResource(R.drawable.telegram)
+            NotificationService.CALL_CODE -> intercepted_notification_logo.setImageResource(R.drawable.call)
+            NotificationService.OTHER_NOTIFICATIONS_CODE -> intercepted_notification_logo.setImageResource(R.drawable.notif_icon_2_no)
         }
     }
 
@@ -195,8 +209,17 @@ class MainActivity : AppCompatActivity() {
         return alertDialogBuilder.create()
     }
 
-    companion object {
+    private fun initDisableVibro(timeString: String) {
+        val timeInMillis = MyRees.time(timeString)
+        val intent = Intent(this, MyRees::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(this, 100, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
+        val data = Date(timeInMillis)
+        Log.d("time_set_next_alarm", "$data")
+    }
 
+    companion object {
         private val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
         private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
     }

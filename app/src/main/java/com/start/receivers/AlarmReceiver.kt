@@ -1,4 +1,4 @@
-package com.start.reminder
+package com.start.receivers
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -14,16 +14,15 @@ import android.util.Log
 import android.widget.Toast
 import com.start.utils.*
 import java.io.IOException
-import java.util.*
 
-class Alarm : BroadcastReceiver() {
+class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, javaClass.name)
         wakeLock.acquire()
 
-        Toast.makeText(context, "Alarm !!!!!!!!!!", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "AlarmReceiver !!!!!!!!!!", Toast.LENGTH_LONG).show()
 
         try {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -47,7 +46,7 @@ class Alarm : BroadcastReceiver() {
 
         fun setAlarm(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val intent = Intent(context, Alarm::class.java)
+            val intent = Intent(context, AlarmReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
             alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
@@ -58,7 +57,7 @@ class Alarm : BroadcastReceiver() {
         }
 
         fun cancelAlarm(context: Context) {
-            val intent = Intent(context, Alarm::class.java)
+            val intent = Intent(context, AlarmReceiver::class.java)
             val sender = PendingIntent.getBroadcast(context, 0, intent, 0)
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(sender)

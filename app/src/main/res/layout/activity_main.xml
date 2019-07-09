@@ -7,15 +7,50 @@
     android:layout_height="match_parent"
     android:background="@color/gray">
 
+    <ImageView
+        android:id="@+id/intercepted_notification_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/notification_logo"
+        android:src="@drawable/notif_icon_2_no"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <Button
         android:id="@+id/permissoinBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="7dp"
+        android:layout_marginTop="8dp"
         android:text="разрешения"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/repeatBtn"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/intercepted_notification_logo" />
+
+    <Button
+        android:id="@+id/repeatBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="oткл. повтор"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/permissoinBtn"
+        app:layout_constraintTop_toBottomOf="@+id/intercepted_notification_logo" />
+
+
+    <View
+        android:id="@+id/divider_view3"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/repeatBtn" />
 
 
     <TextView
@@ -28,14 +63,13 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/permissoinBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/divider_view3" />
 
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@color/white"
+        android:background="@color/gray"
         android:max="60"
         android:progress="1"
         app:layout_constraintStart_toStartOf="parent"
@@ -45,42 +79,52 @@
         android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:text="1"
         android:textColor="@color/white"
-        android:textSize="20sp"
+        android:textSize="17sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
+        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintTop_toTopOf="@+id/textView" />
 
-
-    <Button
-        android:id="@+id/repeatBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <View
+        android:id="@+id/divider_view4"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
         android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:text="oткл. повтор"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/time" />
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/seekBar" />
 
     <CheckBox
         android:id="@+id/checkbox_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
         android:text="скрыть иконку вверху"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/repeatBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/divider_view4" />
+
+    <View
+        android:id="@+id/divider_view1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/checkbox_icon" />
 
     <TextView
         android:id="@+id/fromTV"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
+        android:textSize="17sp"
         app:layout_constraintBottom_toBottomOf="@+id/fromTime"
         app:layout_constraintEnd_toStartOf="@+id/fromTime"
         app:layout_constraintStart_toStartOf="parent"
@@ -91,13 +135,11 @@
         android:id="@+id/fromTime"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-
         android:layout_marginTop="8dp"
-
         android:text="установите время старта"
         app:layout_constraintEnd_toEndOf="@+id/toTime"
         app:layout_constraintStart_toStartOf="@+id/toTime"
-        app:layout_constraintTop_toBottomOf="@+id/checkbox_icon" />
+        app:layout_constraintTop_toBottomOf="@+id/divider_view1" />
 
     <TextView
         android:id="@+id/toTV"
@@ -106,6 +148,7 @@
         android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="@+id/toTime"
         app:layout_constraintEnd_toStartOf="@+id/toTime"
+        android:textSize="17sp"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/toTime"
@@ -122,18 +165,45 @@
         app:layout_constraintStart_toEndOf="@+id/toTV"
         app:layout_constraintTop_toBottomOf="@+id/fromTime" />
 
+    <View
+        android:id="@+id/divider_view2"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toBottomOf="@+id/toTime" />
 
-    <ImageView
-        android:id="@+id/intercepted_notification_logo"
+    <CheckBox
+        android:id="@+id/disable_vibro_checkbox_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:contentDescription="@string/notification_logo"
-        android:src="@drawable/notif_icon_2_no"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="8dp"
+        android:text="отключать вибро режим"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toTime" />
+        app:layout_constraintTop_toBottomOf="@+id/divider_view2" />
 
+    <Button
+        android:id="@+id/disable_vibro_time_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="время отключения"
+        app:layout_constraintEnd_toEndOf="@+id/toTime"
+        app:layout_constraintStart_toStartOf="@+id/toTime"
+        app:layout_constraintTop_toBottomOf="@+id/disable_vibro_checkbox_icon" />
+
+    <TextView
+        android:id="@+id/disable_vibroTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="17sp"
+        app:layout_constraintBottom_toBottomOf="@+id/disable_vibro_time_btn"
+        app:layout_constraintEnd_toStartOf="@+id/disable_vibro_time_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/disable_vibro_time_btn"
+        tools:text="11:22" />
 
 </android.support.constraint.ConstraintLayout>

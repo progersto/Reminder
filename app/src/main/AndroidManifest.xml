@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.start.reminder.NotificationListenerExampleService"
+        <service android:name="com.start.reminder.NotificationService"
             android:label="@string/service_label"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -29,7 +29,12 @@
             </intent-filter>
         </service>
 
-        <receiver android:process=":remote" android:name="com.start.reminder.Alarm"/>
+        <receiver android:process=":remote" android:name="com.start.reminder.com.start.receivers.AlarmReceiver"/>
+
+        <receiver
+            android:name="com.start.receivers.MyRees"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

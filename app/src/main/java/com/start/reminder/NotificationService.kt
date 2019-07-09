@@ -13,10 +13,11 @@ import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import com.start.receivers.AlarmReceiver
 import com.start.utils.*
 import java.util.*
 
-class NotificationListenerExampleService : NotificationListenerService() {
+class NotificationService : NotificationListenerService() {
     private val notifId = 4
     private var handler: Handler? = null
 
@@ -81,12 +82,10 @@ class NotificationListenerExampleService : NotificationListenerService() {
         notificationManager?.cancel(notifId)
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val i = super.onStartCommand(intent, flags, startId)
-        Log.d("Package__", "onStartCommand $i")
-        return i
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("Package__", "onStartCommand")
+        return super.onStartCommand(intent, flags, startId)
     }
-
     override fun onBind(intent: Intent): IBinder? {
         Log.d("Package__", "onBind ")
         DataController.getInstance().setValueInLifeDataS("onBind")
@@ -97,7 +96,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
         val notificationCode = matchNotificationCode(sbn, 0)
 
         if (DataController.getInstance().getLifeData().value == null) {
-            Alarm.cancelAlarm(this)
+            AlarmReceiver.cancelAlarm(this)
             sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
         }
 
@@ -115,7 +114,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
                         it.postDelayed({
                             Log.d("Package__", "set in handler ")
                             sendBroadcastInMain(notificationCode, true)
-                            Alarm.setAlarm(this)
+                            AlarmReceiver.setAlarm(this)
                         }, (1000 * 60 * restoreTime(baseContext)).toLong())
                     }
                 }
@@ -145,7 +144,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         val notificationCode = matchNotificationCode(sbn, 1)
         if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
-            Alarm.cancelAlarm(this)
+            AlarmReceiver.cancelAlarm(this)
             sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
         }
     }
@@ -196,7 +195,7 @@ class NotificationListenerExampleService : NotificationListenerService() {
     override fun onUnbind(intent: Intent): Boolean {
         Log.d("Package__", "onUnbind")
 
-        Alarm.cancelAlarm(this)
+        AlarmReceiver.cancelAlarm(this)
         sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
 
         DataController.getInstance().setValueInLifeDataS("onUnbind")
