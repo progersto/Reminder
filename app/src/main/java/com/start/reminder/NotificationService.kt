@@ -121,6 +121,7 @@ class NotificationService : NotificationListenerService() {
         if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
             AlarmReceiver.cancelAlarm(this)
             sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
+            handler!!.removeMessages(0)
         }
     }
 
