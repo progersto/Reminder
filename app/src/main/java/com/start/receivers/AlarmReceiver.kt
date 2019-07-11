@@ -12,8 +12,12 @@ import android.media.MediaPlayer
 import android.os.*
 import android.util.Log
 import android.widget.Toast
+import com.start.reminder.DataController
+import com.start.reminder.NotificationService
+import com.start.reminder.ValueliveData
 import com.start.utils.*
 import java.io.IOException
+import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -22,7 +26,15 @@ class AlarmReceiver : BroadcastReceiver() {
         val wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, javaClass.name)
         wakeLock.acquire()
 
-        Toast.makeText(context, "AlarmReceiver !!!!!!!!!!", Toast.LENGTH_LONG).show()
+        if (!checkTime(context)) {
+            cancelAlarm(context)
+            DataController.getInstance().setValueInLifeData(
+                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+            )
+            return
+        }
+
+        Toast.makeText(context, "Посмотрите уведомления !!!!!!!!!!", Toast.LENGTH_LONG).show()
 
         try {
             val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -37,20 +49,21 @@ class AlarmReceiver : BroadcastReceiver() {
                     context.vibrate(longArrayOf(0, 400, 200, 500))
                 }
             }
-        } catch (e: IOException) { e.printStackTrace() }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
         wakeLock.release()
     }
 
 
     companion object {
-
         fun setAlarm(context: Context) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, AlarmReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
             alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-                    (1000 * 60 * restoreTime(context)).toLong(),
+                    (1000 * 20 * restoreTime(context)).toLong(),
                     pendingIntent
             )
             Log.d("Package__", "setAlarm " + restoreTime(context))
@@ -58,10 +71,11 @@ class AlarmReceiver : BroadcastReceiver() {
 
         fun cancelAlarm(context: Context) {
             val intent = Intent(context, AlarmReceiver::class.java)
+//            val sender = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
             val sender = PendingIntent.getBroadcast(context, 0, intent, 0)
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(sender)
-            canceledAlarm(context, false)
+            setAlarm(context, false)
             Log.d("Package__", "cancelAlarm")
         }
     }

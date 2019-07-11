@@ -25,6 +25,8 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var cont: Context
+
     private val isNotificationServiceEnabled: Boolean
         get() {
             val pkgName = packageName
@@ -69,12 +71,13 @@ class MainActivity : AppCompatActivity() {
             time!!.text = restoreTime(this).toString()
         }
 
-        if (isCancelAlarm(this)) {
+        if (isAlarm(this)) {
             repeatBtn!!.text = "Остановить уведомления"
         } else {
             repeatBtn!!.text = "Нет уведомлений"
         }
 
+        seekBar.progress = time.text.toString().toInt()
         seekBar!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 var progr = progress
@@ -83,21 +86,15 @@ class MainActivity : AppCompatActivity() {
                 }
                 time!!.text = progr.toString()
                 saveTime(seekBar.context, progr)
-                if (isCancelAlarm(seekBar.context)) {
-                    AlarmReceiver.cancelAlarm(this@MainActivity)
-                    AlarmReceiver.setAlarm(this@MainActivity)
-                    Log.d("Package__", "AlarmReceiver is reinstalled")
+                if (isAlarm(seekBar.context)) {
+                    reInstallTimer()
                 } else
                     Log.d("Package__", "set time")
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar) {
+            override fun onStartTrackingTouch(seekBar: SeekBar) {}
 
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar) {
-
-            }
+            override fun onStopTrackingTouch(seekBar: SeekBar) {}
         })
 
         repeatBtn!!.setOnClickListener { v ->
@@ -148,28 +145,52 @@ class MainActivity : AppCompatActivity() {
         }
     }//onCreate
 
+    private fun reInstallTimer() {
+        AlarmReceiver.cancelAlarm(this@MainActivity)
+        AlarmReceiver.setAlarm(this@MainActivity)
+        setAlarm(this, true)
+        Log.d("Package__", "AlarmReceiver is reinstalled")
+    }
+
     private fun configureTimePicker(text: TextView, savedTime: String) {
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
 
-        val picker = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { _, hourOfDay, minut ->
+        val picker = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener { view, hourOfDay, minut ->
+            if (view.isShown) {
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minut)
+                calendar.set(Calendar.SECOND, 0)
 
-            calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-            calendar.set(Calendar.MINUTE, minut)
-            calendar.set(Calendar.SECOND, 0)
+                val mn = if (minut < 10) "0$minut" else minut.toString()
+                val hr = if (hourOfDay < 10) "0$hourOfDay" else hourOfDay.toString()
+                val hourString = "$hr:$mn"
 
-            val mn = if (minut < 10) "0$minut" else minut.toString()
-            val hr = if (hourOfDay < 10) "0$hourOfDay" else hourOfDay.toString()
-            val hourString = "$hr:$mn"
+                when (savedTime) {
+                    "from" -> {
+                        saveTimeFrom(this, hourString)
+                        if (!checkTime(this)) {
+                            AlarmReceiver.cancelAlarm(this@MainActivity)
+                            DataController.getInstance().setValueInLifeData(
+                                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+                            )
+                        }
+                    }
+                    "to" -> {
+                        saveTimeTo(this, hourString)
+                        if (!checkTime(this)) {
+                            AlarmReceiver.cancelAlarm(this@MainActivity)
+                            DataController.getInstance().setValueInLifeData(
+                                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+                            )
+                        }
+                    }
+                    "vibro" -> saveTimeVibro(this, hourString)
+                }
 
-            when (savedTime) {
-                "from" -> saveTimeFrom(this, hourString)
-                "to" -> saveTimeTo(this, hourString)
-                "vibro" -> saveTimeVibro(this, hourString)
+                text.text = hourString
             }
-
-            text.text = hourString
         }, hour, minute, DateFormat.is24HourFormat(this))
         picker.show()
     }
@@ -186,7 +207,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setTextBtn(send: Boolean) {
         if (send) {
-            repeatBtn!!.text = "Остановить уведомления"
+            repeatBtn!!.text = "Стоп"
         } else {
             repeatBtn!!.text = "Нет уведомлений"
         }

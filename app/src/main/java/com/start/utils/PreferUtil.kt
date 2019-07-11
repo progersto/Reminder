@@ -48,14 +48,14 @@ fun restoreTimeTo(context: Context): String {
     return prefs.getString(TIME_TO_KEY, "21:00")!!
 }
 
-fun canceledAlarm(context: Context, value: Boolean) {
+fun setAlarm(context: Context, value: Boolean) {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     val editor = prefs.edit()
     editor.putBoolean(ALARM_CANCEL_KEY, value)
     editor.apply()
 }
 
-fun isCancelAlarm(context: Context): Boolean {
+fun isAlarm(context: Context): Boolean {
     val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     val alarmUp = prefs.getBoolean(ALARM_CANCEL_KEY, false)
     if (alarmUp) {
