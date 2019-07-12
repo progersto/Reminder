@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
         val data = Date(timeInMillis)
-        Log.d("time_set_next_alarm", "$data")
+        Log.d("Package__", "$data")
     }
 
     companion object {

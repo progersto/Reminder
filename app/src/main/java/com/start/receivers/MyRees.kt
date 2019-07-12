@@ -51,6 +51,6 @@ class MyRees : BroadcastReceiver() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.set(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent)
         val data = Date(timeInMillis)
-        Log.d("time_set_next_alarm", data.toString())
+        Log.d("Package__", data.toString())
     }
 }
