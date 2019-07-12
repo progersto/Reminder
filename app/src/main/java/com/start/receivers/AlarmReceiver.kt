@@ -63,7 +63,7 @@ class AlarmReceiver : BroadcastReceiver() {
             val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
             alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-                    (1000 * 20 * restoreTime(context)).toLong(),
+                    (1000 * 60 * restoreTime(context)).toLong(),
                     pendingIntent
             )
             Log.d("Package__", "setAlarm " + restoreTime(context))

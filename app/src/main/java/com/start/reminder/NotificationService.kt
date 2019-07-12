@@ -110,7 +110,7 @@ class NotificationService : NotificationListenerService() {
                         Log.d("Package__", "set in handler ")
                         sendBroadcastInMain(notificationCode, true)
                         AlarmReceiver.setAlarm(this)
-                    }, (1000 * 10 * restoreTime(baseContext)).toLong())
+                    }, (1000 * 60 * restoreTime(baseContext)).toLong())
                 }
             }
         }
