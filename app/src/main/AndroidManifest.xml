@@ -32,7 +32,7 @@
         </service>
 
         <receiver
-
+            android:process=":remote"
             android:name="com.start.receivers.AlarmReceiver"/>
 
         <receiver
