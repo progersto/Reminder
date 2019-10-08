@@ -1,9 +1,6 @@
 package com.start.reminder
 
-import android.app.AlarmManager
-import android.app.AlertDialog
-import android.app.PendingIntent
-import android.app.TimePickerDialog
+import android.app.*
 import android.arch.lifecycle.Observer
 import android.content.ComponentName
 import android.content.Context
@@ -14,6 +11,7 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.text.format.DateFormat
 import android.util.Log
+import android.view.View
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
@@ -101,12 +99,13 @@ class MainActivity : AppCompatActivity() {
             if (repeatBtn!!.text.toString() == "Нет уведомлений") {
                 Toast.makeText(v.context, "Нет уведомлений", Toast.LENGTH_SHORT).show()
             } else {
-                AlarmReceiver.cancelAlarm(v.context)
-                repeatBtn!!.text = "Нет уведомлений"
-                changeInterceptedNotificationImage(NotificationService.OTHER_NOTIFICATIONS_CODE)
+                cancel(v)
             }
         }
-        permissoinBtn!!.setOnClickListener { startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+        permissoinBtn!!.setOnClickListener {
+            cancel(it)
+            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
 
         if (!isNotificationServiceEnabled) {
             permissoinBtn!!.text = "нет разрешений"
@@ -144,6 +143,12 @@ class MainActivity : AppCompatActivity() {
             restoreTimeTo(this)
         }
     }//onCreate
+
+    private fun cancel(v: View) {
+        AlarmReceiver.cancelAlarm(v.context)
+        repeatBtn!!.text = "Нет уведомлений"
+        changeInterceptedNotificationImage(NotificationService.OTHER_NOTIFICATIONS_CODE)
+    }
 
     private fun reInstallTimer() {
         AlarmReceiver.cancelAlarm(this@MainActivity)
