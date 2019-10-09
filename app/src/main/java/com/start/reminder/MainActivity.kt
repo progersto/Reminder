@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         }
         permissoinBtn!!.setOnClickListener {
             cancel(it.context)
-//            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
@@ -230,7 +230,9 @@ class MainActivity : AppCompatActivity() {
         alertDialogBuilder.setMessage(R.string.notification_listener_service_explanation)
         alertDialogBuilder.setPositiveButton(R.string.yes
 //        ) { _, _ -> startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
-        ) { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+        ) { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
         alertDialogBuilder.setNegativeButton(R.string.no) { _, _ -> Log.d("Package__", "NegativeButton") }
         return alertDialogBuilder.create()
     }
@@ -247,8 +249,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private val ENABLED_SERVICE = Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-//        private val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
-//        private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
+        private val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
+        private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
     }
 }
 

