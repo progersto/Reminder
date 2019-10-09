@@ -1,5 +1,7 @@
 package com.start.reminder
 
+import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,14 +11,18 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Handler
-import android.os.IBinder
-import android.service.notification.NotificationListenerService
-import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.view.accessibility.AccessibilityEvent
 import com.start.receivers.AlarmReceiver
+import com.start.reminder.BestService.PackageNames.CALL_PACK_NAME
+import com.start.reminder.BestService.PackageNames.TELEGRAM_PACK_NAME
+import com.start.reminder.BestService.PackageNames.TELEGRAM_X_PACK_NAME
+import com.start.reminder.BestService.PackageNames.VIBER_PACK_NAME
+import com.start.reminder.BestService.PackageNames.WHATSAPP_PACK_NAME
 import com.start.utils.*
 
-class NotificationService : NotificationListenerService() {
+class BestService : AccessibilityService() {
+
     private val notifId = 4
     private var handler: Handler? = null
 
@@ -28,7 +34,7 @@ class NotificationService : NotificationListenerService() {
         const val OTHER_NOTIFICATIONS_CODE = 6
     }
 
-    private object ApplicationPackageNames {
+    private object PackageNames {
         const val VIBER_PACK_NAME = "com.viber.voip"
         const val WHATSAPP_PACK_NAME = "com.whatsapp"
         const val TELEGRAM_PACK_NAME = "org.telegram.messenger"
@@ -40,7 +46,7 @@ class NotificationService : NotificationListenerService() {
         super.onCreate()
         createNotificationChannel()
 
-        val notificationIntent = Intent(this, MainActivity::class.java)
+        val notificationIntent = Intent(this, CancelActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0)
 
@@ -81,19 +87,30 @@ class NotificationService : NotificationListenerService() {
         notificationManager?.cancel(notifId)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("Package__", "onStartCommand")
-        return super.onStartCommand(intent, flags, startId)
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (event.eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
+            Log.d("Package__", "onAccessibilityEvent ")
+            val text = event.text.map { it.toString() }.toString()
+
+            when (event.packageName) {
+                VIBER_PACK_NAME,
+                WHATSAPP_PACK_NAME,
+                TELEGRAM_PACK_NAME,
+                TELEGRAM_X_PACK_NAME,
+                CALL_PACK_NAME -> {
+                    Log.d("Package__", "text.length = ${text.length}")
+                    if (text.length > 2) {
+                        Log.d("Package__", "text = $text, packageName = ${event.packageName}")
+                        startReminder(event)
+                    }
+                }
+                else -> Log.d("Package__", "text = $text, packageName = ${event.packageName}")
+            }
+        }
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        Log.d("Package__", "onBind ")
-        MainViewModel.getInstance().setValueInLifeDataS("onBind")
-        return super.onBind(intent)
-    }
-
-    override fun onNotificationPosted(sbn: StatusBarNotification) {
-        val notificationCode = matchNotificationCode(sbn, 0)
+    private fun startReminder(accessibilityEvent: AccessibilityEvent) {
+        val notificationCode = matchNotificationCode(accessibilityEvent, 0)
 
         if (MainViewModel.getInstance().getLifeData().value == null) {
             AlarmReceiver.cancelAlarm(this)
@@ -115,20 +132,39 @@ class NotificationService : NotificationListenerService() {
         }
     }
 
-    override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        val notificationCode = matchNotificationCode(sbn, 1)
-        if (notificationCode != OTHER_NOTIFICATIONS_CODE) {
-            AlarmReceiver.cancelAlarm(this)
-            sendBroadcastInMain(OTHER_NOTIFICATIONS_CODE, false)
-            handler!!.removeMessages(0)
-        }
+    override fun onServiceConnected() {
+        Log.d("Package__", "onServiceConnected ")
+        MainViewModel.getInstance().setValueInLifeDataS("onBind")
+//        Toast.makeText(applicationContext, "START", Toast.LENGTH_LONG).show()
+        val events = listOf(AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED)
+
+//        val flags = listOf(AccessibilityServiceInfo.DEFAULT,
+//                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS,
+//                AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS,
+//                AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE)
+
+        val info = AccessibilityServiceInfo()
+        info.eventTypes = events.reduce { reduced, value -> reduced or value }
+//        info.flags = flags.reduce { reduced, value -> reduced or value }
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK
+        info.packageNames = arrayOf( VIBER_PACK_NAME, WHATSAPP_PACK_NAME, TELEGRAM_PACK_NAME,
+                TELEGRAM_X_PACK_NAME, CALL_PACK_NAME)
+        info.notificationTimeout = 100
+
+        serviceInfo = info
+
     }
+
+    override fun onInterrupt() {
+        Log.d("SSSSSS", "onInterrupt")
+    }
+
 
     private fun sendBroadcastInMain(notificationCode: Int, send: Boolean) {
         MainViewModel.getInstance().setValueInLifeData(UIObject(send, notificationCode))
     }
 
-    private fun matchNotificationCode(sbn: StatusBarNotification, action: Int): Int {
+    private fun matchNotificationCode(sbn: AccessibilityEvent, action: Int): Int {
         val packageName = sbn.packageName
         if (action == 1) {
             Log.d("Package__", "Removed = $packageName")
@@ -137,11 +173,11 @@ class NotificationService : NotificationListenerService() {
         }
 
         return when (packageName) {
-            ApplicationPackageNames.VIBER_PACK_NAME -> VIBER_CODE
-            ApplicationPackageNames.WHATSAPP_PACK_NAME -> WHATSAPP_CODE
-            ApplicationPackageNames.TELEGRAM_PACK_NAME,
-            ApplicationPackageNames.TELEGRAM_X_PACK_NAME -> TELEGRAM_CODE
-            ApplicationPackageNames.CALL_PACK_NAME -> CALL_CODE
+            VIBER_PACK_NAME -> VIBER_CODE
+            WHATSAPP_PACK_NAME -> WHATSAPP_CODE
+            TELEGRAM_PACK_NAME,
+            TELEGRAM_X_PACK_NAME -> TELEGRAM_CODE
+            CALL_PACK_NAME -> CALL_CODE
             else -> OTHER_NOTIFICATIONS_CODE
         }
     }
@@ -152,20 +188,11 @@ class NotificationService : NotificationListenerService() {
         removeNotification()
     }
 
-    override fun onListenerConnected() {
-        super.onListenerConnected()
-        Log.d("Package__", "onListenerConnected")
-    }
-
-    override fun onListenerDisconnected() {
-        super.onListenerDisconnected()
-        Log.d("Package__", "onListenerDisconnected")
-    }
-
     override fun onRebind(intent: Intent) {
         super.onRebind(intent)
         Log.d("Package__", "onRebind")
     }
+
 
     override fun onUnbind(intent: Intent): Boolean {
         Log.d("Package__", "onUnbind")

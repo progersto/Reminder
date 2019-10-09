@@ -12,12 +12,11 @@ import android.media.MediaPlayer
 import android.os.*
 import android.util.Log
 import android.widget.Toast
-import com.start.reminder.DataController
-import com.start.reminder.NotificationService
-import com.start.reminder.ValueliveData
+import com.start.reminder.BestService
+import com.start.reminder.MainViewModel
+import com.start.reminder.UIObject
 import com.start.utils.*
 import java.io.IOException
-import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -28,8 +27,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
         if (!checkTime(context)) {
             cancelAlarm(context)
-            DataController.getInstance().setValueInLifeData(
-                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+            MainViewModel.getInstance().setValueInLifeData(
+                    UIObject(false, BestService.OTHER_NOTIFICATIONS_CODE)
             )
             return
         }

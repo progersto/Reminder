@@ -23,13 +23,12 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var cont: Context
-
     private val isNotificationServiceEnabled: Boolean
         get() {
             val pkgName = packageName
             val flat = Settings.Secure.getString(contentResolver,
-                    ENABLED_NOTIFICATION_LISTENERS)
+//                    ENABLED_NOTIFICATION_LISTENERS)
+                    ENABLED_SERVICE)
             if (!TextUtils.isEmpty(flat)) {
                 val names = flat.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 for (name in names) {
@@ -86,8 +85,7 @@ class MainActivity : AppCompatActivity() {
                 saveTime(seekBar.context, progr)
                 if (isAlarm(seekBar.context)) {
                     reInstallTimer()
-                } else
-                    Log.d("Package__", "set time")
+                } else Log.d("Package__", "set time")
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -99,12 +97,13 @@ class MainActivity : AppCompatActivity() {
             if (repeatBtn!!.text.toString() == "Нет уведомлений") {
                 Toast.makeText(v.context, "Нет уведомлений", Toast.LENGTH_SHORT).show()
             } else {
-                cancel(v)
+                cancel(v.context)
             }
         }
         permissoinBtn!!.setOnClickListener {
-            cancel(it)
-            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            cancel(it.context)
+//            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         if (!isNotificationServiceEnabled) {
@@ -114,18 +113,18 @@ class MainActivity : AppCompatActivity() {
             permissoinBtn!!.text = "есть разрешения"
         }
 
-        val liveData = DataController.getInstance().getLifeData()
+        val liveData = MainViewModel.getInstance().getLifeData()
         liveData.observe(this, Observer { value ->
             Log.d("Package__", "liveData Observe")
             setTextBtn(value!!.getAction())//stop notification text
             changeInterceptedNotificationImage(value.getNotificationCode())
         })
-        val liveDataS = DataController.getInstance().getLifeDataS()
-        liveDataS.observe(this, Observer { s -> setTextPermission(s!!) })
+        val permission = MainViewModel.getInstance().checkPermission()
+        permission.observe(this, Observer { s -> setTextPermission(s!!) })
 
-        if (DataController.getInstance().getLifeData().value == null) {
-            DataController.getInstance().setValueInLifeData(ValueliveData(
-                    false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+        if (MainViewModel.getInstance().getLifeData().value == null) {
+            MainViewModel.getInstance().setValueInLifeData(UIObject(
+                    false, BestService.OTHER_NOTIFICATIONS_CODE)
             )
             AlarmReceiver.cancelAlarm(this)
         }
@@ -144,10 +143,10 @@ class MainActivity : AppCompatActivity() {
         }
     }//onCreate
 
-    private fun cancel(v: View) {
-        AlarmReceiver.cancelAlarm(v.context)
+    fun cancel(context: Context) {
+        AlarmReceiver.cancelAlarm(context)
         repeatBtn!!.text = "Нет уведомлений"
-        changeInterceptedNotificationImage(NotificationService.OTHER_NOTIFICATIONS_CODE)
+        changeInterceptedNotificationImage(BestService.OTHER_NOTIFICATIONS_CODE)
     }
 
     private fun reInstallTimer() {
@@ -177,8 +176,8 @@ class MainActivity : AppCompatActivity() {
                         saveTimeFrom(this, hourString)
                         if (!checkTime(this)) {
                             AlarmReceiver.cancelAlarm(this@MainActivity)
-                            DataController.getInstance().setValueInLifeData(
-                                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+                            MainViewModel.getInstance().setValueInLifeData(
+                                    UIObject(false, BestService.OTHER_NOTIFICATIONS_CODE)
                             )
                         }
                     }
@@ -186,8 +185,8 @@ class MainActivity : AppCompatActivity() {
                         saveTimeTo(this, hourString)
                         if (!checkTime(this)) {
                             AlarmReceiver.cancelAlarm(this@MainActivity)
-                            DataController.getInstance().setValueInLifeData(
-                                    ValueliveData(false, NotificationService.OTHER_NOTIFICATIONS_CODE)
+                            MainViewModel.getInstance().setValueInLifeData(
+                                    UIObject(false, BestService.OTHER_NOTIFICATIONS_CODE)
                             )
                         }
                     }
@@ -202,11 +201,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun changeInterceptedNotificationImage(notificationCode: Int) {
         when (notificationCode) {
-            NotificationService.VIBER_CODE -> intercepted_notification_logo.setImageResource(R.drawable.viber)
-            NotificationService.WHATSAPP_CODE -> intercepted_notification_logo.setImageResource(R.drawable.whatsapp_logo)
-            NotificationService.TELEGRAM_CODE -> intercepted_notification_logo.setImageResource(R.drawable.telegram)
-            NotificationService.CALL_CODE -> intercepted_notification_logo.setImageResource(R.drawable.call)
-            NotificationService.OTHER_NOTIFICATIONS_CODE -> intercepted_notification_logo.setImageResource(R.drawable.notif_icon_2_no)
+            BestService.VIBER_CODE -> intercepted_notification_logo.setImageResource(R.drawable.viber)
+            BestService.WHATSAPP_CODE -> intercepted_notification_logo.setImageResource(R.drawable.whatsapp_logo)
+            BestService.TELEGRAM_CODE -> intercepted_notification_logo.setImageResource(R.drawable.telegram)
+            BestService.CALL_CODE -> intercepted_notification_logo.setImageResource(R.drawable.call)
+            BestService.OTHER_NOTIFICATIONS_CODE -> intercepted_notification_logo.setImageResource(R.drawable.notif_icon_2_no)
         }
     }
 
@@ -230,7 +229,8 @@ class MainActivity : AppCompatActivity() {
         alertDialogBuilder.setTitle(R.string.notification_listener_service)
         alertDialogBuilder.setMessage(R.string.notification_listener_service_explanation)
         alertDialogBuilder.setPositiveButton(R.string.yes
-        ) { _, _ -> startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+//        ) { _, _ -> startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+        ) { _, _ -> startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
         alertDialogBuilder.setNegativeButton(R.string.no) { _, _ -> Log.d("Package__", "NegativeButton") }
         return alertDialogBuilder.create()
     }
@@ -246,8 +246,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
-        private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
+        private val ENABLED_SERVICE = Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+//        private val ENABLED_NOTIFICATION_LISTENERS = "enabled_notification_listeners"
+//        private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
     }
 }
 
