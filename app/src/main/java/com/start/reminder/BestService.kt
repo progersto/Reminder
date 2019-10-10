@@ -97,10 +97,13 @@ class BestService : AccessibilityService() {
                 VIBER_PACK_NAME,
                 WHATSAPP_PACK_NAME,
                 TELEGRAM_PACK_NAME,
-                TELEGRAM_X_PACK_NAME,
-                CALL_PACK_NAME -> {
-                    Log.d("Package__", "text.length = ${text.length}")
+                TELEGRAM_X_PACK_NAME ->  {
                     if (text.length > 2) {
+                        Log.d("Package__", "text = $text, packageName = ${event.packageName}")
+                        startReminder(event)
+                    }}
+                CALL_PACK_NAME -> {
+                    if (text.length > 2 && text != "[Усл. переадресация вызовов вкл.]") {
                         Log.d("Package__", "text = $text, packageName = ${event.packageName}")
                         startReminder(event)
                     }
